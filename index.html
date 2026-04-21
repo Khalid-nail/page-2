@@ -1,136 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>team 7 page 2</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			margin: 0;
-			padding: 0;
-		}
-		
-		nav {
-			background-image: image-set("ggg.png");
-			color: #fff;
-			padding: 1em;
-			text-align: center;
-		}
-		
-		nav ul {
-			list-style: none;
-			margin: 0;
-			padding: 0;
-		}
-		
-		nav li {
-			display: inline-block;
-			margin-right: 20px;
-		}
-		
-		nav a {
-			color: #fff;
-			text-decoration: none;
-		}
-		
-		.container {
-			width: 80%;
-			margin: 40px auto;
-		}
-		
-		h1 {
-			color: #333;
-		}
-		
-		ul {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-		}
-		
-		li {
-			margin-bottom: 10px;
-		}
-		
-		table {
-			border-collapse: collapse;
-			width: 100%;
-		}
-		
-		th, td {
-			border: 1px solid #ddd;
-			padding: 10px;
-			text-align: left;
-		}
-		
-		th {
-			background-color: #f0f0f0;
-		}
-		
-		img {
-			width: 50%;
-			height: 300px;
-			object-fit: cover;
-			margin: 20px 0;
-		}
-		
-		video {
-			width: 100%;
-			height: 300px;
-			margin: 20px 0;
-		}
-	</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Plan Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; box-sizing: border-box; font-family: system-ui; }
+    body { background: #0f172a; color: #fff; padding: 2rem; max-width: 600px; margin: auto; }
+    h1 { margin-bottom: 1.5rem; }
+    input, button { padding:.7rem; border-radius: 6px; border: none; margin:.3rem 0; width: 100%; }
+    input { background: #1e293b; color: #fff; }
+    button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; }
+    .row { display: flex; gap:.5rem; }
+    .row input { flex: 1; }
+    .row button { width: auto; }
+    ul { list-style: none; margin-top: 1rem; }
+    li { background: #1e293b; padding:.8rem; margin:.5rem 0; border-radius: 6px;
+         display: flex; justify-content: space-between; align-items: center; }
+    .done { text-decoration: line-through; opacity:.6; }
+    .delete { background: #ef4444; color: #fff; padding:.3rem.6rem; width:auto; }
+    .logout { background: #64748b; margin-top: 2rem; }
+    #app { display: none; }
+  </style>
 </head>
 <body>
-	<nav>
-		<ul>
-            
+  <div id="auth">
+    <h1>Study Plan Tracker</h1>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <div class="row">
+      <button onclick="signUp()">Sign Up</button>
+      <button onclick="signIn()">Login</button>
+    </div>
+  </div>
 
-            
-			<li><a href="https://khalid-nail.github.io/code-1/">home</a></li>
-                              
-			<li><a href="#">About</a></li>
-			<li><a href="">contact</a></li>
-		</ul>
-	         </nav>
-	<div class="container">
-		<h1>HTML Versions</h1>
-		<ul>
-			<li>HTML 1.0 (1993)</li>
-			<li>HTML 2.0 (1995)</li>
-			<li>HTML 3.2 (1997)</li>
-			<li>HTML 4.01 (1999)</li>
-			<li>XHTML (2000)</li>
-			<li>HTML5 (2014)</li>
-		</ul>
-		
-		<h1>Semantic vs Non-Semantic Elements</h1>
-		<table>
-			<tr>
-				<th>Semantic Elements</th>
-				<th>Non-Semantic Elements</th>
-			</tr>
-			<tr>
-				<td>header, nav, main, section, article, aside, footer</td>
-				<td>div, span</td>
-			</tr>
-			<tr>
-				<td>Provide meaning to the structure of the document</td>
-				<td>Do not provide any meaning to the structure of the document</td>
-			</tr>
-			<tr>
-				<td>Improve accessibility and SEO</td>
-				<td>Do not improve accessibility and SEO</td>
-			</tr>
-		</table>
-		
-		<img src="ggg.png" alt="HTML Image">
-		
-		<h1>HTML Tutorial Video</h1>
-		<video controls>
-			<source src="team 7.html - Visual Studio Code 2025-12-19 09-33-31.mp4" type="video/mp4">
-			Your browser does not support the video tag.
-		</video>
-	</div>
+  <div id="app">
+    <h1>My Study Plan</h1>
+    <div class="row">
+      <input id="taskInput" placeholder="Add subject or task...">
+      <button onclick="addTask()">Add</button>
+    </div>
+    <ul id="taskList"></ul>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+<script>
+  // 1. حط مفاتيحك هنا من Supabase
+  const SUPABASE_URL = 'https://njiglkopjcsfhpiydge.supabase.co'; 
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM'; 
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // 2. تسجيل حساب جديد
+  async function signUp() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) alert(error.message);
+    else alert('Check your email to confirm, then login');
+  }
+
+  // 3. تسجيل دخول
+  async function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert(error.message);
+  }
+
+  // 4. تسجيل خروج
+  async function logout() {
+    await supabase.auth.signOut();
+  }
+
+  // 5. إضافة مهمة
+  async function addTask() {
+    const input = document.getElementById('taskInput');
+    if (!input.value.trim()) return;
+    const user = (await supabase.auth.getUser()).data.user;
+    await supabase.from('study_plans').insert({ task: input.value, user_id: user.id });
+    input.value = '';
+    loadTasks();
+  }
+
+  // 6. تحميل المهام
+  async function loadTasks() {
+    const { data } = await supabase.from('study_plans').select('*').order('created_at');
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+    data.forEach(t => {
+      list.innerHTML += `<li class="${t.done ? 'done' : ''}">
+        <span onclick="toggleTask(${t.id}, ${!t.done})">${t.task}</span>
+        <button class="delete" onclick="deleteTask(${t.id})">X</button>
+      </li>`;
+    });
+  }
+
+  // 7. تبديل حالة المهمة
+  async function toggleTask(id, done) {
+    await supabase.from('study_plans').update({ done }).eq('id', id);
+    loadTasks();
+  }
+
+  // 8. حذف مهمة
+  async function deleteTask(id) {
+    await supabase.from('study_plans').delete().eq('id', id);
+    loadTasks();
+  }
+
+  // 9. مراقبة حالة تسجيل الدخول
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadTasks();
+    } else {
+      document.getElementById('auth').style.display = 'block';
+      document.getElementById('app').style.display = 'none';
+    }
+  });
+</script>
 </body>
-
 </html>
