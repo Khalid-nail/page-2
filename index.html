@@ -16,8 +16,7 @@
     .row input { flex: 1; }
     .row button { width: auto; }
     ul { list-style: none; margin-top: 1rem; }
-    li { background: #1e293b; padding:.8rem; margin:.5rem 0; border-radius: 6px;
-         display: flex; justify-content: space-between; align-items: center; }
+    li { background: #1e293b; padding:.8rem; margin:.5rem 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
     .done { text-decoration: line-through; opacity:.6; }
     .delete { background: #ef4444; color: #fff; padding:.3rem.6rem; width:auto; }
     .logout { background: #64748b; margin-top: 2rem; }
@@ -46,11 +45,10 @@
   </div>
 
 <script>
-  // 1. حط مفاتيحك هنا من Supabase
-  const SUPABASE_URL = 'https://njiglkopjcsfhpiydge.supabase.co'; // جبتها من نفس المفتاح
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM';  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = 'https://njiglkopjcsfhpiydge.supabase.co'; 
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // 2. تسجيل حساب جديد
   async function signUp() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -59,7 +57,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     else alert('Check your email to confirm, then login');
   }
 
-  // 3. تسجيل دخول
   async function signIn() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -67,12 +64,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     if (error) alert(error.message);
   }
 
-  // 4. تسجيل خروج
   async function logout() {
     await supabase.auth.signOut();
   }
 
-  // 5. إضافة مهمة
   async function addTask() {
     const input = document.getElementById('taskInput');
     if (!input.value.trim()) return;
@@ -82,7 +77,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     loadTasks();
   }
 
-  // 6. تحميل المهام
   async function loadTasks() {
     const { data } = await supabase.from('study_plans').select('*').order('created_at');
     const list = document.getElementById('taskList');
@@ -95,19 +89,16 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     });
   }
 
-  // 7. تبديل حالة المهمة
   async function toggleTask(id, done) {
     await supabase.from('study_plans').update({ done }).eq('id', id);
     loadTasks();
   }
 
-  // 8. حذف مهمة
   async function deleteTask(id) {
     await supabase.from('study_plans').delete().eq('id', id);
     loadTasks();
   }
 
-  // 9. مراقبة حالة تسجيل الدخول
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
       document.getElementById('auth').style.display = 'none';
