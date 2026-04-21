@@ -47,9 +47,8 @@
 
 <script>
   // 1. حط مفاتيحك هنا من Supabase
-  const SUPABASE_URL = 'https://njiglkopjcsfhpiydge.supabase.co'; 
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM'; 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_URL = 'https://njiglkopjcsfhpiydge.supabase.co'; // جبتها من نفس المفتاح
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM';  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // 2. تسجيل حساب جديد
   async function signUp() {
