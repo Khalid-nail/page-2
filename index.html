@@ -1,114 +1,274 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Plan Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { margin: 0; box-sizing: border-box; font-family: system-ui; }
-    body { background: #0f172a; color: #fff; padding: 2rem; max-width: 600px; margin: auto; }
-    h1 { margin-bottom: 1.5rem; }
-    input, button { padding:.7rem; border-radius: 6px; border: none; margin:.3rem 0; width: 100%; }
-    input { background: #1e293b; color: #fff; }
-    button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; }
-    .row { display: flex; gap:.5rem; }
-    .row input { flex: 1; }
-    .row button { width: auto; }
-    ul { list-style: none; margin-top: 1rem; }
-    li { background: #1e293b; padding:.8rem; margin:.5rem 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .done { text-decoration: line-through; opacity:.6; }
-    .delete { background: #ef4444; color: #fff; padding:.3rem.6rem; width:auto; }
-    .logout { background: #64748b; margin-top: 2rem; }
-    #app { display: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطتي الدراسية - Cloud</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh;
+    }
+   .container { max-width: 800px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 10px; color: #60a5fa; font-size: 2rem; }
+   .subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; font-size: 0.9rem; }
+   .card {
+        background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+        padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    input, select, button {
+        padding: 10px; border-radius: 8px; border: 1px solid #475569;
+        background: #0f172a; color: #e2e8f0; font-size: 14px; width: 100%;
+    }
+    button {
+        background: #3b82f6; border: none; cursor: pointer; font-weight: bold;
+        transition: 0.2s; margin-top: 10px;
+    }
+    button:hover { background: #2563eb; }
+   .btn-logout { background: #ef4444; width: auto; padding: 8px 16px; float: left; }
+   .btn-delete { background: #ef4444; padding: 6px 12px; font-size: 12px; width: auto; }
+   .add-form { display: grid; gap: 12px; grid-template-columns: 2fr 1fr 1fr auto; }
+   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+   .stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center; }
+   .stat-num { font-size: 2rem; font-weight: bold; color: #60a5fa; }
+   .stat-label { font-size: 0.8rem; color: #94a3b8; margin-top: 5px; }
+   .task {
+        background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+        padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
+    }
+   .task.done { opacity: 0.5; }
+   .task.done .task-title { text-decoration: line-through; }
+   .checkbox { width: 20px; height: 20px; cursor: pointer; }
+   .task-content { flex: 1; }
+   .task-title { font-weight: bold; margin-bottom: 4px; }
+   .task-meta { font-size: 0.8rem; color: #94a3b8; }
+   .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+   .badge-high { background: #dc2626; }
+   .badge-med { background: #f59e0b; }
+   .badge-low { background: #10b981; }
+   .progress-bar { width: 100%; height: 8px; background: #334155; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+   .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 0.3s; }
+   .empty { text-align: center; color: #64748b; padding: 40px 0; }
+   .auth-box { max-width: 400px; margin: 50px auto; }
+   .toggle-auth { background: none; color: #60a5fa; text-decoration: underline; margin-top: 15px; }
+   .user-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+   .hidden { display: none; }
+    @media (max-width: 700px) {
+       .add-form { grid-template-columns: 1fr; }
+       .stats { grid-template-columns: 1fr; }
+    }
+</style>
 </head>
 <body>
-  <div id="auth">
-    <h1>Study Plan Tracker</h1>
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <div class="row">
-      <button onclick="signUp()">Sign Up</button>
-      <button onclick="signIn()">Login</button>
+<div class="container">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="authScreen" class="auth-box card">
+        <h1>📚 خطتي الدراسية</h1>
+        <p class="subtitle">سجل دخولك عشان توصل لخطتك من أي مكان</p>
+        <input type="email" id="email" placeholder="الإيميل" style="margin-bottom:10px">
+        <input type="password" id="password" placeholder="كلمة المرور" style="margin-bottom:10px">
+        <button id="loginBtn">تسجيل دخول</button>
+        <button class="toggle-auth" id="toggleBtn">ماعندك حساب؟ سجل الآن</button>
     </div>
-  </div>
 
-  <div id="app">
-    <h1>My Study Plan</h1>
-    <div class="row">
-      <input id="taskInput" placeholder="Add subject or task...">
-      <button onclick="addTask()">Add</button>
+    <!-- التطبيق الرئيسي -->
+    <div id="appScreen" class="hidden">
+        <div class="user-bar">
+            <h1>📚 خطتي الدراسية</h1>
+            <div>
+                <span id="userEmail" style="color:#94a3b8; margin-left:15px"></span>
+                <button class="btn-logout" id="logoutBtn">خروج</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-num" id="totalTasks">0</div>
+                <div class="stat-label">كل المهام</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="doneTasks">0</div>
+                <div class="stat-label">مكتملة</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="percent">0%</div>
+                <div class="stat-label">نسبة الإنجاز</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <form class="add-form" id="taskForm">
+                <input type="text" id="taskName" placeholder="اسم المادة أو المهمة" required>
+                <input type="date" id="taskDate" required>
+                <select id="taskPriority">
+                    <option value="high">أولوية عالية</option>
+                    <option value="med">متوسطة</option>
+                    <option value="low">منخفضة</option>
+                </select>
+                <button type="submit">+ إضافة</button>
+            </form>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="taskList"></div>
     </div>
-    <ul id="taskList"></ul>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
+</div>
 
-<script>
-  const SUPABASE_URL = 'https://njiglkkopjcsfhpiydge.supabase.co'; 
-  const SUPABASE_KEY ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qaWdsa2tvcGpjc2ZocGl5ZGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3OTAwODUsImV4cCI6MjA5MjM2NjA4NX0.feciJuSe42N4cnKKil1613avhOaLBjEAl8ChOAv4zQM';
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script type="module">
+    // 1. استورد Firebase
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-  async function signUp() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const { error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) alert(error.message);
-    else alert('Check your email to confirm, then login');
-  }
+    // 2. حط الكونفق حقك هنا من Firebase Console
+    const firebaseConfig = {
+  apiKey: "AIzaSyDxEPOieqzvYIG9tLn4OSIIxgR0WV5ytnw",
+  authDomain: "study-plan-gg.firebaseapp.com",
+  databaseURL: "https://study-plan-gg-default-rtdb.firebaseio.com",
+  projectId: "study-plan-gg",
+  storageBucket: "study-plan-gg.firebasestorage.app",
+  messagingSenderId: "402944431971",
+  appId: "1:402944431971:web:ba4016deb590a0312f6556",
+  measurementId: "G-W1D4TV5PCH"
+};
 
-  async function signIn() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
-  }
+    // 3. شغل Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  async function logout() {
-    await supabase.auth.signOut();
-  }
+    let isLogin = true;
+    let currentUser = null;
+    let unsubscribe = null;
 
-  async function addTask() {
-    const input = document.getElementById('taskInput');
-    if (!input.value.trim()) return;
-    const user = (await supabase.auth.getUser()).data.user;
-    await supabase.from('study_plans').insert({ task: input.value, user_id: user.id });
-    input.value = '';
-    loadTasks();
-  }
+    // عناصر الواجهة
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+    const loginBtn = document.getElementById('loginBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const taskForm = document.getElementById('taskForm');
+    const taskList = document.getElementById('taskList');
 
-  async function loadTasks() {
-    const { data } = await supabase.from('study_plans').select('*').order('created_at');
-    const list = document.getElementById('taskList');
-    list.innerHTML = '';
-    data.forEach(t => {
-      list.innerHTML += `<li class="${t.done ? 'done' : ''}">
-        <span onclick="toggleTask(${t.id}, ${!t.done})">${t.task}</span>
-        <button class="delete" onclick="deleteTask(${t.id})">X</button>
-      </li>`;
+    // تبديل بين دخول وتسجيل
+    toggleBtn.onclick = () => {
+        isLogin =!isLogin;
+        loginBtn.textContent = isLogin? 'تسجيل دخول' : 'إنشاء حساب';
+        toggleBtn.textContent = isLogin? 'ماعندك حساب؟ سجل الآن' : 'عندك حساب؟ سجل دخول';
+    };
+
+    // تسجيل دخول أو إنشاء حساب
+    loginBtn.onclick = async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        if (!email ||!password) return alert('عبي الإيميل والباسورد');
+
+        try {
+            if (isLogin) {
+                await signInWithEmailAndPassword(auth, email, password);
+            } else {
+                await createUserWithEmailAndPassword(auth, email, password);
+            }
+        } catch (error) {
+            alert('خطأ: ' + error.message);
+        }
+    };
+
+    // خروج
+    logoutBtn.onclick = () => signOut(auth);
+
+    // راقب حالة المستخدم
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            authScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            document.getElementById('userEmail').textContent = user.email;
+            loadTasks();
+        } else {
+            currentUser = null;
+            authScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+            if (unsubscribe) unsubscribe();
+        }
     });
-  }
 
-  async function toggleTask(id, done) {
-    await supabase.from('study_plans').update({ done }).eq('id', id);
-    loadTasks();
-  }
-
-  async function deleteTask(id) {
-    await supabase.from('study_plans').delete().eq('id', id);
-    loadTasks();
-  }
-
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session) {
-      document.getElementById('auth').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      loadTasks();
-    } else {
-      document.getElementById('auth').style.display = 'block';
-      document.getElementById('app').style.display = 'none';
+    // تحميل المهام من Firestore - كل يوزر له مهامه الخاصة
+    function loadTasks() {
+        if (unsubscribe) unsubscribe();
+        const q = query(collection(db, 'tasks'), where('userId', '==', currentUser.uid));
+        
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            const tasks = [];
+            snapshot.forEach((doc) => {
+                tasks.push({ id: doc.id,...doc.data() });
+            });
+            render(tasks);
+        });
     }
-  });
+
+    // إضافة مهمة
+    taskForm.onsubmit = async (e) => {
+        e.preventDefault();
+        await addDoc(collection(db, 'tasks'), {
+            userId: currentUser.uid,
+            name: document.getElementById('taskName').value,
+            date: document.getElementById('taskDate').value,
+            priority: document.getElementById('taskPriority').value,
+            done: false,
+            createdAt: Date.now()
+        });
+        taskForm.reset();
+    };
+
+    // تحديث حالة المهمة
+    window.toggleTask = async (taskId, currentDone) => {
+        await updateDoc(doc(db, 'tasks', taskId), { done:!currentDone });
+    };
+
+    // حذف مهمة
+    window.deleteTask = async (taskId) => {
+        if (confirm('متأكد تبي تحذف المهمة؟')) {
+            await deleteDoc(doc(db, 'tasks', taskId));
+        }
+    };
+
+    // رسم الواجهة
+    function render(tasks) {
+        const total = tasks.length;
+        const done = tasks.filter(t => t.done).length;
+        const percent = total? Math.round(done / total * 100) : 0;
+
+        document.getElementById('totalTasks').textContent = total;
+        document.getElementById('doneTasks').textContent = done;
+        document.getElementById('percent').textContent = percent + '%';
+        document.getElementById('progressFill').style.width = percent + '%';
+
+        if (tasks.length === 0) {
+            taskList.innerHTML = '<div class="empty">ما عندك مهام. ضيف أول مهمة فوق 👆</div>';
+            return;
+        }
+
+        tasks.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+        taskList.innerHTML = tasks.map(task => `
+            <div class="task ${task.done? 'done' : ''}">
+                <input type="checkbox" class="checkbox" ${task.done? 'checked' : ''}
+                       onchange="toggleTask('${task.id}', ${task.done})">
+                <div class="task-content">
+                    <div class="task-title">${task.name}</div>
+                    <div class="task-meta">موعد التسليم: ${task.date}</div>
+                </div>
+                <span class="badge badge-${task.priority}">
+                    ${task.priority === 'high'? 'عالية' : task.priority === 'med'? 'متوسطة' : 'منخفضة'}
+                </span>
+                <button class="btn-delete" onclick="deleteTask('${task.id}')">حذف</button>
+            </div>
+        `).join('');
+    }
 </script>
 </body>
 </html>
